@@ -35,89 +35,41 @@ local function gradient(parent, a, b)
     create("UIGradient", {Color=ColorSequence.new(a,b), Rotation=10}, parent)
 end
 -- Reusable gold/lime gradient + dotted texture for every panel.
+-- Style the actual GuiObject rather than putting a full-size Frame over its children.
+-- That way labels, buttons and tab pages remain visible and clickable.
 local function skin(panel, colors, columns, rows, transparency)
     panel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    panel.ClipsDescendants = true
-
-    local existing = panel:FindFirstChild("AevrixFX")
-    if existing then existing:Destroy() end
-
-    local layer = create("Frame", {
-        Name = "AevrixFX",
-        Size = UDim2.fromScale(1, 1),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ZIndex = math.max(0, (panel.ZIndex or 1) - 1),
-        Active = false,
-    }, panel)
-    
-    local base = create("Frame", {
-        Name = "GradientBase",
-        Size = UDim2.fromScale(1,1),
-        BackgroundColor3 = Color3.fromRGB(255,255,255),
-        BorderSizePixel = 0,
-        ZIndex = layer.ZIndex,
-        Active = false,
-    }, layer)
-    create("UIGradient", {
+    local existingGradient = panel:FindFirstChild("AevrixPanelGradient")
+    if existingGradient then existingGradient:Destroy() end
+    local g = create("UIGradient", {
+        Name = "AevrixPanelGradient",
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, colors[1]),
-            ColorSequenceKeypoint.new(0.46, colors[2]),
-            ColorSequenceKeypoint.new(1, colors[3]),
+            ColorSequenceKeypoint.new(0.5, colors[2]),
+            ColorSequenceKeypoint.new(1, colors[3])
         }),
-        Rotation = 0,
-    }, base)
-
-    local sheen = create("Frame", {
-        Name = "Sheen",
-        BackgroundColor3 = Color3.fromRGB(255,255,255),
-        BackgroundTransparency = 0.93,
-        BorderSizePixel = 0,
-        Position = UDim2.fromScale(0,0),
-        Size = UDim2.fromScale(1,0.42),
-        ZIndex = layer.ZIndex,
-        Active = false,
-    }, layer)
-    create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255,245,190)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(210,255,160)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255,245,190)),
-        }),
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.55),
-            NumberSequenceKeypoint.new(1, 1),
-        }),
-        Rotation = 0,
-    }, sheen)
-
-    if columns and rows and columns > 0 and rows > 0 then
-        local dotsHolder = create("Frame", {
-            Name = "DotsHolder",
-            Size = UDim2.fromScale(1,1),
-            BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            ZIndex = layer.ZIndex,
-            Active = false,
-        }, layer)
-        for x = 0, columns - 1 do
-            for y = 0, rows - 1 do
+        Rotation = 0
+    }, panel)
+    -- Only the main window gets decorative dots; all other panels remain clean.
+    if panel.Name == "Main" then
+        for x=1,39 do
+            for y=1,23 do
                 local dot = create("Frame", {
-                    Name = "GridDot",
-                    AnchorPoint = Vector2.new(0.5, 0.5),
-                    Position = UDim2.fromScale((x+0.5)/columns, (y+0.5)/rows),
-                    Size = UDim2.fromOffset(2, 2),
-                    BackgroundColor3 = Color3.fromRGB(244, 236, 160),
-                    BackgroundTransparency = transparency or 0.9,
-                    BorderSizePixel = 0,
-                    ZIndex = layer.ZIndex,
-                    Active = false,
-                }, dotsHolder)
-                create("UICorner", {CornerRadius=UDim.new(1,0)}, dot)
+                    Name="BackgroundDot",
+                    AnchorPoint=Vector2.new(0.5,0.5),
+                    Position=UDim2.fromScale(x/40,y/24),
+                    Size=UDim2.fromOffset(2,2),
+                    BackgroundColor3=Color3.fromRGB(242,240,172),
+                    BackgroundTransparency=0.9,
+                    BorderSizePixel=0,
+                    ZIndex=1,
+                    Active=false
+                }, panel)
+                create("UICorner",{CornerRadius=UDim.new(1,0)},dot)
             end
         end
     end
-    return layer
+    return g
 end
 
 local PANEL = {
@@ -164,7 +116,7 @@ function UI:CreateWindow(options)
     skin(main, PANEL, 42, 24, 0.9)
     stroke(main,palette.accent,0.03,1.8)
     window.Main, window.Shade = main,shade
-    local topbar = create("Frame", {Name="Topbar", Size=UDim2.new(1,0,0,66), BackgroundColor3=palette.surface, BorderSizePixel=0},main)
+    local topbar = create("Frame", {Name="Topbar", Size=UDim2.new(1,0,0,66), BackgroundColor3=palette.surface, BorderSizePixel=0, ZIndex=3},main)
     corner(topbar,18)
     skin(topbar, {Color3.fromRGB(78, 65, 12),Color3.fromRGB(19, 33, 15),Color3.fromRGB(65, 71, 16)}, 34, 4, 0.92)
     local cover = create("Frame", {Position=UDim2.new(0,0,1,-16), Size=UDim2.new(1,0,0,16), BackgroundColor3=palette.surface, BorderSizePixel=0},topbar)
@@ -178,11 +130,11 @@ function UI:CreateWindow(options)
     subtitle.Position=UDim2.fromOffset(22,37); subtitle.Size=UDim2.fromOffset(420,19)
     local close = create("TextButton", {Text="×",Font=Enum.Font.GothamBold,TextSize=23,TextColor3=palette.text,BackgroundColor3=palette.card,Position=UDim2.new(1,-42,0,18),Size=UDim2.fromOffset(25,25)},topbar)
     corner(close,8); skin(close, CONTROL); stroke(close, palette.accent, 0.7, 1); close.MouseButton1Click:Connect(function() window:Destroy() end)
-    local sidebar = create("ScrollingFrame", {Name="Sidebar",Position=UDim2.fromOffset(12,77),Size=UDim2.new(0,154,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ScrollBarThickness=2,CanvasSize=UDim2.new()},main)
+    local sidebar = create("ScrollingFrame", {Name="Sidebar",Position=UDim2.fromOffset(12,77),Size=UDim2.new(0,154,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ScrollBarThickness=2,CanvasSize=UDim2.new(),ZIndex=3},main)
     corner(sidebar,12); skin(sidebar, SUBPANEL, 11, 16, 0.94); stroke(sidebar,palette.accent,0.35,1); padding(sidebar,7)
     local sidebarLayout = create("UIListLayout", {Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder},sidebar)
     sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() sidebar.CanvasSize=UDim2.fromOffset(0,sidebarLayout.AbsoluteContentSize.Y+14) end)
-    local content = create("Frame", {Name="Content",Position=UDim2.fromOffset(177,77),Size=UDim2.new(1,-190,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ClipsDescendants=true},main)
+    local content = create("Frame", {Name="Content",Position=UDim2.fromOffset(177,77),Size=UDim2.new(1,-190,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ClipsDescendants=true,ZIndex=3},main)
     corner(content,12)
     skin(content, SUBPANEL, 22, 16, 0.92)
     stroke(content,palette.lime,0.38,1)
