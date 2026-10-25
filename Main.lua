@@ -13,7 +13,7 @@ local UI = {}
 UI.__index = UI
 UI.Themes = {"Golden Lime", "Emerald", "Midnight"}
 local PALETTES = {
-    ["Golden Lime"] = {bg = Color3.fromRGB(11,16,14), surface = Color3.fromRGB(23,30,23), card = Color3.fromRGB(33,41,29), text = Color3.fromRGB(243,247,225), muted = Color3.fromRGB(164,181,148), accent = Color3.fromRGB(255,222,49), lime = Color3.fromRGB(132,255,58)},
+    ["Golden Lime"] = {bg = Color3.fromRGB(10,12,10), surface = Color3.fromRGB(19,24,18), card = Color3.fromRGB(32,38,28), text = Color3.fromRGB(248,249,235), muted = Color3.fromRGB(196,204,180), accent = Color3.fromRGB(255,218,64), lime = Color3.fromRGB(150,255,82)},
     Emerald = {bg = Color3.fromRGB(9,18,17), surface = Color3.fromRGB(17,34,31), card = Color3.fromRGB(23,46,37), text = Color3.fromRGB(238,251,243), muted = Color3.fromRGB(150,186,163), accent = Color3.fromRGB(70,237,137), lime = Color3.fromRGB(121,255,187)},
     Midnight = {bg = Color3.fromRGB(14,17,27), surface = Color3.fromRGB(25,29,44), card = Color3.fromRGB(34,39,58), text = Color3.fromRGB(240,241,250), muted = Color3.fromRGB(155,165,194), accent = Color3.fromRGB(174,144,255), lime = Color3.fromRGB(94,209,255)}
 }
@@ -37,15 +37,69 @@ end
 -- Reusable gold/lime gradient + dotted texture for every panel.
 local function skin(panel, colors, columns, rows, transparency)
     panel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    local gradientObject = create("UIGradient", {
+    panel.ClipsDescendants = true
+
+    local existing = panel:FindFirstChild("AevrixFX")
+    if existing then existing:Destroy() end
+
+    local layer = create("Frame", {
+        Name = "AevrixFX",
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ZIndex = math.max(0, (panel.ZIndex or 1) - 1),
+        Active = false,
+    }, panel)
+    
+    local base = create("Frame", {
+        Name = "GradientBase",
+        Size = UDim2.fromScale(1,1),
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
+        BorderSizePixel = 0,
+        ZIndex = layer.ZIndex,
+        Active = false,
+    }, layer)
+    create("UIGradient", {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, colors[1]),
             ColorSequenceKeypoint.new(0.46, colors[2]),
             ColorSequenceKeypoint.new(1, colors[3]),
         }),
         Rotation = 0,
-    }, panel)
-    if columns and rows then
+    }, base)
+
+    local sheen = create("Frame", {
+        Name = "Sheen",
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
+        BackgroundTransparency = 0.93,
+        BorderSizePixel = 0,
+        Position = UDim2.fromScale(0,0),
+        Size = UDim2.fromScale(1,0.42),
+        ZIndex = layer.ZIndex,
+        Active = false,
+    }, layer)
+    create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255,245,190)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(210,255,160)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255,245,190)),
+        }),
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.55),
+            NumberSequenceKeypoint.new(1, 1),
+        }),
+        Rotation = 0,
+    }, sheen)
+
+    if columns and rows and columns > 0 and rows > 0 then
+        local dotsHolder = create("Frame", {
+            Name = "DotsHolder",
+            Size = UDim2.fromScale(1,1),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ZIndex = layer.ZIndex,
+            Active = false,
+        }, layer)
         for x = 0, columns - 1 do
             for y = 0, rows - 1 do
                 local dot = create("Frame", {
@@ -53,32 +107,33 @@ local function skin(panel, colors, columns, rows, transparency)
                     AnchorPoint = Vector2.new(0.5, 0.5),
                     Position = UDim2.fromScale((x+0.5)/columns, (y+0.5)/rows),
                     Size = UDim2.fromOffset(2, 2),
-                    BackgroundColor3 = Color3.fromRGB(237, 255, 136),
-                    BackgroundTransparency = transparency or 0.77,
+                    BackgroundColor3 = Color3.fromRGB(244, 236, 160),
+                    BackgroundTransparency = transparency or 0.9,
                     BorderSizePixel = 0,
+                    ZIndex = layer.ZIndex,
                     Active = false,
-                }, panel)
+                }, dotsHolder)
                 create("UICorner", {CornerRadius=UDim.new(1,0)}, dot)
             end
         end
     end
-    return gradientObject
+    return layer
 end
 
 local PANEL = {
-    Color3.fromRGB(53, 44, 10),
-    Color3.fromRGB(17, 28, 14),
-    Color3.fromRGB(45, 51, 10),
+    Color3.fromRGB(40, 35, 12),
+    Color3.fromRGB(12, 18, 12),
+    Color3.fromRGB(48, 44, 12),
 }
 local SUBPANEL = {
-    Color3.fromRGB(33, 37, 13),
-    Color3.fromRGB(12, 22, 14),
-    Color3.fromRGB(36, 43, 14),
+    Color3.fromRGB(31, 32, 16),
+    Color3.fromRGB(12, 18, 14),
+    Color3.fromRGB(32, 36, 16),
 }
 local CONTROL = {
-    Color3.fromRGB(35, 35, 13),
-    Color3.fromRGB(18, 25, 15),
-    Color3.fromRGB(38, 47, 16),
+    Color3.fromRGB(34, 35, 19),
+    Color3.fromRGB(18, 22, 17),
+    Color3.fromRGB(36, 42, 19),
 }
 
 local function label(parent, text, size, color, bold)
@@ -92,7 +147,8 @@ local function safeCallback(fn, ...)
 end
 local function paintButton(button, palette)
     button.BackgroundColor3 = palette.accent
-    button.TextColor3 = Color3.fromRGB(17,23,12)
+    button.TextColor3 = Color3.fromRGB(20, 24, 11)
+    stroke(button, Color3.fromRGB(255, 243, 162), 0.65, 1)
 end
 
 function UI:CreateWindow(options)
@@ -105,31 +161,31 @@ function UI:CreateWindow(options)
     local shade = create("Frame", {Name="Backdrop", Size=UDim2.fromScale(1,1), BackgroundColor3=Color3.new(0,0,0), BackgroundTransparency=1, BorderSizePixel=0}, gui)
     local main = create("Frame", {Name="Main", AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.fromScale(0.5,0.5), Size=UDim2.fromOffset(620,400), BackgroundColor3=palette.bg, BorderSizePixel=0, Active=true}, gui)
     corner(main,18)
-    skin(main, PANEL, 45, 26, 0.7)
-    stroke(main,palette.accent,0.06,1.8)
+    skin(main, PANEL, 42, 24, 0.9)
+    stroke(main,palette.accent,0.03,1.8)
     window.Main, window.Shade = main,shade
     local topbar = create("Frame", {Name="Topbar", Size=UDim2.new(1,0,0,66), BackgroundColor3=palette.surface, BorderSizePixel=0},main)
     corner(topbar,18)
-    skin(topbar, {Color3.fromRGB(78, 65, 12),Color3.fromRGB(19, 33, 15),Color3.fromRGB(65, 71, 16)}, 39, 5, 0.71)
+    skin(topbar, {Color3.fromRGB(78, 65, 12),Color3.fromRGB(19, 33, 15),Color3.fromRGB(65, 71, 16)}, 34, 4, 0.92)
     local cover = create("Frame", {Position=UDim2.new(0,0,1,-16), Size=UDim2.new(1,0,0,16), BackgroundColor3=palette.surface, BorderSizePixel=0},topbar)
     skin(cover, {Color3.fromRGB(78, 65, 12),Color3.fromRGB(19, 33, 15),Color3.fromRGB(65, 71, 16)})
-    local line = create("Frame", {Position=UDim2.new(0,18,1,-2),Size=UDim2.new(1,-36,0,2), BackgroundColor3=palette.accent, BorderSizePixel=0},topbar)
+    local line = create("Frame", {Position=UDim2.new(0,18,1,-2),Size=UDim2.new(1,-36,0,3), BackgroundColor3=palette.accent, BorderSizePixel=0},topbar)
     gradient(line,Color3.fromRGB(255, 223, 27),Color3.fromRGB(76, 255, 42))
     local title = label(topbar,options.Title or "AEVRIX",22,palette.text,true)
     title.Position=UDim2.fromOffset(21,8); title.Size=UDim2.fromOffset(430,29)
     gradient(title,Color3.fromRGB(255,240,113),Color3.fromRGB(118,255,48))
-    local subtitle = label(topbar,options.SubTitle or "Premium Interface",11,palette.muted)
+    local subtitle = label(topbar,options.SubTitle or "Premium Interface",12,palette.muted)
     subtitle.Position=UDim2.fromOffset(22,37); subtitle.Size=UDim2.fromOffset(420,19)
     local close = create("TextButton", {Text="×",Font=Enum.Font.GothamBold,TextSize=23,TextColor3=palette.text,BackgroundColor3=palette.card,Position=UDim2.new(1,-42,0,18),Size=UDim2.fromOffset(25,25)},topbar)
-    corner(close,8); close.MouseButton1Click:Connect(function() window:Destroy() end)
+    corner(close,8); skin(close, CONTROL); stroke(close, palette.accent, 0.7, 1); close.MouseButton1Click:Connect(function() window:Destroy() end)
     local sidebar = create("ScrollingFrame", {Name="Sidebar",Position=UDim2.fromOffset(12,77),Size=UDim2.new(0,154,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ScrollBarThickness=2,CanvasSize=UDim2.new()},main)
-    corner(sidebar,12); skin(sidebar, SUBPANEL); stroke(sidebar,palette.accent,0.48,1); padding(sidebar,7)
+    corner(sidebar,12); skin(sidebar, SUBPANEL, 11, 16, 0.94); stroke(sidebar,palette.accent,0.35,1); padding(sidebar,7)
     local sidebarLayout = create("UIListLayout", {Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder},sidebar)
     sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() sidebar.CanvasSize=UDim2.fromOffset(0,sidebarLayout.AbsoluteContentSize.Y+14) end)
     local content = create("Frame", {Name="Content",Position=UDim2.fromOffset(177,77),Size=UDim2.new(1,-190,1,-90),BackgroundColor3=palette.surface,BorderSizePixel=0,ClipsDescendants=true},main)
     corner(content,12)
-    skin(content, SUBPANEL, 25, 19, 0.73)
-    stroke(content,palette.lime,0.53,1)
+    skin(content, SUBPANEL, 22, 16, 0.92)
+    stroke(content,palette.lime,0.38,1)
     window.Sidebar,window.Content = sidebar,content
     local dragging, startInput, startPos = false,nil,nil
     topbar.InputBegan:Connect(function(input)
@@ -167,7 +223,7 @@ function UI:AddTab(options)
     options=type(options)=="string" and {Title=options} or (options or {})
     local p=self.Palette
     local button=create("TextButton",{Name="TabButton",Text=options.Title or "Tab",Font=Enum.Font.GothamMedium,TextSize=12,TextColor3=p.muted,TextXAlignment=Enum.TextXAlignment.Left,BackgroundColor3=p.card,BackgroundTransparency=0.5,Size=UDim2.new(1,0,0,36)},self.Sidebar)
-    corner(button,8); skin(button, CONTROL, 9, 2, 0.8); padding(button,11)
+    corner(button,8); skin(button, CONTROL); stroke(button,p.accent,0.78,1); padding(button,11)
     local page=create("ScrollingFrame",{Name=options.Title or "Tab",Size=UDim2.fromScale(1,1),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=3,Visible=false,CanvasSize=UDim2.new()},self.Content)
     padding(page,12)
     local layout=create("UIListLayout",{Padding=UDim.new(0,10),SortOrder=Enum.SortOrder.LayoutOrder},page)
@@ -178,7 +234,7 @@ function UI:AddTab(options)
             other.Page.Visible=false;other.Button.TextColor3=p.muted;other.Button.BackgroundTransparency=0.5
         end
         page.Visible=true;button.TextColor3=p.text;button.BackgroundTransparency=0
-        button.BackgroundColor3=p.card
+        button.BackgroundColor3=Color3.fromRGB(60, 67, 42)
     end
     button.MouseButton1Click:Connect(function()tab:Select()end)
     table.insert(self.Tabs,tab)
@@ -186,7 +242,7 @@ function UI:AddTab(options)
     return setmetatable(tab,{__index={
         AddSection=function(t,titleText)
             local section=create("Frame",{Name="Section",Size=UDim2.new(1,-2,0,42),BackgroundColor3=p.card,BorderSizePixel=0,AutomaticSize=Enum.AutomaticSize.Y},t.Page)
-            corner(section,10); skin(section, SUBPANEL); stroke(section,p.accent,0.57,1); padding(section,10)
+            corner(section,10); skin(section, SUBPANEL, 14, 5, 0.94); stroke(section,p.accent,0.42,1); padding(section,10)
             local lay=create("UIListLayout",{Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder},section)
             local titleLabel=label(section,titleText or "Section",12,p.accent,true)
             titleLabel.Size=UDim2.new(1,0,0,19)
@@ -206,11 +262,12 @@ function UI:_section(container,p)
     function s:_row(titleText,description,height)
         local row=create("Frame",{Size=UDim2.new(1,0,0,height or 51),BackgroundColor3=p.surface,BorderSizePixel=0},container)
         corner(row,8)
-        skin(row, CONTROL, 16, 3, 0.84)
-        local name=label(row,titleText or "Option",12,p.text,true)
+        skin(row, CONTROL)
+        stroke(row, p.accent, 0.84, 1)
+        local name=label(row,titleText or "Option",13,p.text,true)
         name.Position=UDim2.fromOffset(9,6);name.Size=UDim2.new(1,-115,0,21)
         if description then
-            local desc=label(row,description,10,p.muted)
+            local desc=label(row,description,11,p.muted)
             desc.Position=UDim2.fromOffset(9,27);desc.Size=UDim2.new(1,-18,0,20)
         end
         return row
@@ -218,7 +275,7 @@ function UI:_section(container,p)
     function s:AddButton(opts)
         opts=opts or {}; local row=self:_row(opts.Title or "Button",opts.Description)
         local b=create("TextButton",{Text=opts.ButtonText or "RUN",Font=Enum.Font.GothamBold,TextSize=11,Size=UDim2.fromOffset(80,28),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row)
-        corner(b,8);paintButton(b,p);gradient(b,Color3.fromRGB(255,224,27),Color3.fromRGB(111,255,29))
+        corner(b,8);paintButton(b,p);gradient(b,Color3.fromRGB(255,226,71),Color3.fromRGB(126,255,52))
         b.MouseButton1Click:Connect(function()safeCallback(opts.Callback)end)
         return b
     end
@@ -226,11 +283,11 @@ function UI:_section(container,p)
         opts=opts or {};local value=opts.Default==true;local row=self:_row(opts.Title or id,opts.Description)
         local b=create("TextButton",{Text=value and "ON" or "OFF",Font=Enum.Font.GothamBold,TextSize=11,Size=UDim2.fromOffset(62,28),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row)
         corner(b,8)
-        local toggleGradient = gradient(b,Color3.fromRGB(255,223,32),Color3.fromRGB(120,255,45))
+        local toggleGradient = gradient(b,Color3.fromRGB(255,226,71),Color3.fromRGB(126,255,52))
         local ctrl={}
         function ctrl:SetValue(v)
             value=not not v;b.Text=value and "ON" or "OFF";b.BackgroundColor3=value and p.accent or p.card
-            b.TextColor3=value and p.bg or p.muted; b.UIGradient.Enabled=value; self.Window._saved[id]=value;safeCallback(opts.Callback,value)
+            b.TextColor3=value and Color3.fromRGB(18,22,11) or p.text; b.BackgroundColor3=value and p.accent or Color3.fromRGB(58,67,50); b.UIGradient.Enabled=value; self.Window._saved[id]=value;safeCallback(opts.Callback,value)
         end
         ctrl.Window=self.Window
         b.MouseButton1Click:Connect(function()ctrl:SetValue(not value)end)
@@ -241,8 +298,8 @@ function UI:_section(container,p)
         opts=opts or {};local minimum=opts.Min or 0;local maximum=math.max(opts.Max or 100,minimum+0.001);local step=opts.Rounding or 1
         local row=self:_row(opts.Title or id,opts.Description,68)
         local valueLabel=label(row,"",11,p.accent,true);valueLabel.Position=UDim2.new(1,-65,0,7);valueLabel.Size=UDim2.fromOffset(58,19);valueLabel.TextXAlignment=Enum.TextXAlignment.Right
-        local bar=create("Frame",{Position=UDim2.new(0,11,0,49),Size=UDim2.new(1,-22,0,8),BackgroundColor3=p.card,BorderSizePixel=0,Active=true},row);corner(bar,8)
-        local fill=create("Frame",{Size=UDim2.fromScale(0,1),BackgroundColor3=p.accent,BorderSizePixel=0},bar);corner(fill,8);gradient(fill,p.accent,p.lime)
+        local bar=create("Frame",{Position=UDim2.new(0,11,0,49),Size=UDim2.new(1,-22,0,8),BackgroundColor3=Color3.fromRGB(53,61,44),BorderSizePixel=0,Active=true},row);corner(bar,8)
+        local fill=create("Frame",{Size=UDim2.fromScale(0,1),BackgroundColor3=p.accent,BorderSizePixel=0},bar);corner(fill,8);gradient(fill,Color3.fromRGB(255,226,71),Color3.fromRGB(126,255,52)); stroke(bar, p.accent, 0.75, 1)
         local value=minimum; local ctrl={}
         function ctrl:SetValue(v)
             value=math.clamp(math.floor((tonumber(v) or minimum)/step+0.5)*step,minimum,maximum)
@@ -269,10 +326,10 @@ function UI:_section(container,p)
     end
     function s:AddDropdown(id,opts)
         opts=opts or {};local values=opts.Values or {};local row=self:_row(opts.Title or id,opts.Description,51)
-        local b=create("TextButton",{Text="Select  ▾",Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=p.text,BackgroundColor3=p.card,Size=UDim2.fromOffset(130,29),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row)
+        local b=create("TextButton",{Text="Select  ▾",Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=p.text,BackgroundColor3=Color3.fromRGB(55,61,43),Size=UDim2.fromOffset(130,29),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row)
         corner(b,8)
         local popup=create("Frame",{Size=UDim2.fromOffset(150,math.min(#values,7)*29+12),BackgroundColor3=p.card,BorderSizePixel=0,Visible=false,ZIndex=30},self.Window.Gui)
-        corner(popup,10);stroke(popup,p.accent,0.45);padding(popup,6)
+        corner(popup,10);skin(popup, SUBPANEL, 10, 8, 0.95);stroke(popup,p.accent,0.35);padding(popup,6)
         create("UIListLayout",{Padding=UDim.new(0,2)},popup)
         local ctrl={Window=self.Window}
         function ctrl:SetValue(v)
@@ -282,7 +339,7 @@ function UI:_section(container,p)
             for _,child in ipairs(popup:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
             popup.Size=UDim2.fromOffset(150, math.min(#values,7)*29+12)
             for _,item in ipairs(values) do
-                local itemButton=create("TextButton",{Text=tostring(item),Font=Enum.Font.Gotham,TextSize=11,TextColor3=p.text,BackgroundColor3=p.surface,Size=UDim2.new(1,0,0,27),ZIndex=31},popup)
+                local itemButton=create("TextButton",{Text=tostring(item),Font=Enum.Font.Gotham,TextSize=11,TextColor3=p.text,BackgroundColor3=Color3.fromRGB(52,58,40),Size=UDim2.new(1,0,0,27),ZIndex=31},popup)
                 corner(itemButton,6);itemButton.MouseButton1Click:Connect(function()ctrl:SetValue(item)end)
             end
         end
@@ -296,7 +353,7 @@ function UI:_section(container,p)
     end
     function s:AddInput(id,opts)
         opts=opts or {};local row=self:_row(opts.Title or id,opts.Description,58)
-        local input=create("TextBox",{PlaceholderText=opts.Placeholder or "Type here...",Text=tostring(opts.Default or ""),ClearTextOnFocus=false,Font=Enum.Font.Gotham,TextSize=12,TextColor3=p.text,PlaceholderColor3=p.muted,BackgroundColor3=p.card,Position=UDim2.new(0,9,0,31),Size=UDim2.new(1,-18,0,22)},row);corner(input,6)
+        local input=create("TextBox",{PlaceholderText=opts.Placeholder or "Type here...",Text=tostring(opts.Default or ""),ClearTextOnFocus=false,Font=Enum.Font.Gotham,TextSize=12,TextColor3=p.text,PlaceholderColor3=p.muted,BackgroundColor3=Color3.fromRGB(54,60,43),Position=UDim2.new(0,9,0,31),Size=UDim2.new(1,-18,0,22)},row);corner(input,6); stroke(input, p.accent, 0.8, 1)
         local ctrl={Window=self.Window}
         function ctrl:SetValue(value) input.Text=tostring(value);self.Window._saved[id]=input.Text;safeCallback(opts.Callback,input.Text) end
         input.FocusLost:Connect(function()ctrl:SetValue(input.Text)end)
@@ -305,7 +362,7 @@ function UI:_section(container,p)
     function s:AddKeybind(id,opts)
         opts=opts or {};local chosen=opts.Default or Enum.KeyCode.RightControl;local listening=false
         local row=self:_row(opts.Title or id,opts.Description)
-        local button=create("TextButton",{Text=chosen.Name,Font=Enum.Font.GothamBold,TextSize=11,TextColor3=p.text,BackgroundColor3=p.card,Size=UDim2.fromOffset(110,28),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row);corner(button,8)
+        local button=create("TextButton",{Text=chosen.Name,Font=Enum.Font.GothamBold,TextSize=11,TextColor3=p.text,BackgroundColor3=Color3.fromRGB(55,61,43),Size=UDim2.fromOffset(110,28),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-8,0.5,0)},row);corner(button,8); stroke(button,p.accent,0.8,1)
         local ctrl={Window=self.Window}
         function ctrl:SetValue(value)
             if typeof(value)=="EnumItem" then chosen=value end
@@ -324,7 +381,7 @@ end
 function UI:Notify(opts)
     opts=opts or {};local p=self.Palette
     local card=create("Frame",{Name="Notification",AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,-18,1,-18),Size=UDim2.fromOffset(294,76),BackgroundColor3=p.surface,ZIndex=50},self.Gui)
-    corner(card,10);stroke(card,p.accent,0.35)
+    corner(card,10);skin(card, SUBPANEL);stroke(card,p.accent,0.25)
     local title=label(card,opts.Title or "AEVRIX",13,p.accent,true);title.Position=UDim2.fromOffset(12,8);title.Size=UDim2.new(1,-24,0,21);title.ZIndex=51
     local body=label(card,opts.Content or opts.Description or "",11,p.text);body.Position=UDim2.fromOffset(12,30);body.Size=UDim2.new(1,-24,0,35);body.ZIndex=51
     task.delay(opts.Duration or 4,function()if card.Parent then card:Destroy() end end)
