@@ -1,5 +1,4 @@
--- AEVRIX UI - standalone Luau interface library
--- Original UI implementation; no verification or remote code loading.
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -34,9 +33,7 @@ end
 local function gradient(parent, a, b)
     create("UIGradient", {Color=ColorSequence.new(a,b), Rotation=10}, parent)
 end
--- Reusable gold/lime gradient + dotted texture for every panel.
--- Style the actual GuiObject rather than putting a full-size Frame over its children.
--- That way labels, buttons and tab pages remain visible and clickable.
+
 local function skin(panel, colors, columns, rows, transparency)
     panel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     local existingGradient = panel:FindFirstChild("AevrixPanelGradient")
@@ -50,7 +47,7 @@ local function skin(panel, colors, columns, rows, transparency)
         }),
         Rotation = 0
     }, panel)
-    -- Only the main window gets decorative dots; all other panels remain clean.
+
     if panel.Name == "Main" then
         for x=1,39 do
             for y=1,23 do
@@ -339,7 +336,7 @@ function UI:Notify(opts)
     task.delay(opts.Duration or 4,function()if card.Parent then card:Destroy() end end)
 end
 function UI:SetTheme(theme)
-    -- Theme selection is saved for the next window creation. Rebuild to recolor all controls.
+
     if PALETTES[theme] then self.Theme=theme;self.Palette=PALETTES[theme] end
 end
 function UI:SaveSettings()
